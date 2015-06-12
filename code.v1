@@ -1,0 +1,317 @@
+//Author :Huang Yaowei
+//2015/6/6
+#include <iostream>
+using namespace std;
+
+template <class T>
+int divide(T a[],int low,int high){	//quicksort for sort function.
+	int k=a[low];
+	
+	do{
+		while(low<high && a[high]>=k)--high;
+		if(low<high){ a[low] =a[high];++low;}
+		while(low<high &&a[low]<=k) ++low;
+		if(low<high) { a[high] =a[low];--high;}
+	}while(low!=high);
+	a[low]=k;
+	return low;
+}
+
+template <class T>
+void quicksort(T a[],int low ,int high){
+	int mid;
+	
+	if (low>=high)return;
+	mid =divide(a,low,high);
+	quicksort( a, low ,mid-1);
+	quicksort( a, mid+1, high);
+}
+
+class NoElement{
+};
+
+class InvalidIndex{
+};
+
+template <class T>
+class MyList{
+	private:
+		T *a;
+		int size;
+		int len;
+		void double_space(){	//double the size of list.
+				T *p;
+				p=new T[len];
+				for(int i=0;i<len;++i) p[i]=a[i];
+				delete a;
+				size*=2;
+				a=new T[size];
+				for(int i=0;i<len;++i) a[i]=p[i];
+				delete p;
+		}
+	public:
+		MyList(){				
+			size=100;
+			a=new T [size];
+			len=0;
+		}
+		
+		MyList(int num, const T &item){  //Repeat item num times into list
+			size=num+100;
+			a=new T [size];
+			len=num;
+			for(int i=0;i<num;++i)
+				a[i]=item;
+		}
+		
+		MyList(const MyList &l){		//Copy to another MyList。
+			size=l.size;
+			a=new T[size];
+			len=l.len;
+			for(int i=0;i<len;++i)
+				a[i]=l.a[i];
+		}
+		
+		MyList(T* arr, int lenth){		//let arr's first lenth element to construct list
+			size=len+100;
+			a=new T[size];
+			len=lenth;
+			for(int i=0;i<len;++i)
+				a[i]=arr[i];
+		}
+		
+		void push(const T &item){		//Add item at the end of MyList.
+			if(len+1>=size) double_space();
+			a[len]=item;
+			++len;
+		}
+		
+		T pop(){						//Delete the last element of MyList, and return it.
+			try{
+				if(len==0) throw NoElement();
+					--len;
+					return a[len];
+			}
+			catch(NoElement){
+				cout<<"There's no element in list."<<endl;
+				return 0;
+			}
+			
+		}
+		
+		void insert(int index, const T &item){	//Insert the item into place.
+			try{
+				if(index>len) throw InvalidIndex();
+				++len;	
+				if(len>=size) double_space();
+				for(int i=len-1;i>index;--i){
+					a[i]=a[i-1];
+				}
+				a[index]=item;
+			}
+			catch(InvalidIndex){
+				cout<<"Index out of range."<<endl;
+			}
+		}
+		
+		void clean(){		//Empty the list;
+			size=100;
+			len=0;
+			delete []a;
+			a=new T [size];
+		}
+		
+		int get_size(){		//Return the number of the elements in MyList.
+			return len;
+		}
+
+		void erase(int start, int end){	//Delete the element from start to end in MyList.(Including the both sides)
+			try{
+				if(start>=len || start<0 ||end>=len || end<0 ) throw InvalidIndex();
+				if(start>end) throw InvalidIndex();
+				for(int i=0;i<len-end-1;++i)
+					a[start+i]=a[end+i+1];
+					len-=(end-start+1);
+			}
+			catch(InvalidIndex) {
+				cout<<"Index is invalid"<<endl;
+			}
+		}
+		
+		T get_item(int index){	//Return the NO.index element。
+			try{
+				if(index>=len) throw InvalidIndex();
+				return a[index];
+			}
+			catch (InvalidIndex){
+				cout<<"Index of of range."<<endl;
+				return 0;
+			}
+		}
+		
+		MyList get_item(int start, int end){	//Return the element from start to end in MyList.(Including the both sides)
+			MyList tmp;
+			if(end<0) end+=len;
+			try{		
+				if(start>=len || start<0 ||end>=len || end<0 ) throw InvalidIndex();	
+				if(start>end){
+					tmp.size=100;
+					tmp.a=new T [size];
+					tmp.len=0;
+				}
+				else{
+					tmp.size=(end-start+1)*2;
+					tmp.a=new T [size];
+					tmp.len=end-start+1;
+					for(int i=0;i<len;++i)
+						tmp.a[i]=a[start+i];
+				}
+				return tmp;				
+			}
+			catch(InvalidIndex ){
+				cout<<"Index is invalid"<<endl;
+				return tmp;
+			}
+		}
+		
+		int count(const T &item){	//Return the number of element in MyList which are equal to item.
+			int count=0;
+			for(int i=0;i<len;++i){
+				if(a[i]==item) 
+					++count;
+			}
+			return count;
+		}
+		
+		void remove(const T &item){	//Delete the first element inMyList which is equal to the item.
+			bool flag=true;
+			for(int i=0;i<len;++i){
+				if(a[i]==item){
+					for(int j=i;j<len-1;++j)
+						a[j]=a[j+1];
+					--len;
+					flag=false;
+					break;
+				}
+			}
+			if(flag) cout<<"Don't find it!'"<<endl;
+		}
+		
+		friend MyList operator + (const MyList &l1, const MyList &l2){	//combine two MyList.
+			MyList tmp;
+			tmp.len=(l1.len+l2.len);
+			delete []tmp.a;
+			tmp.size=tmp.len*2+100;
+			tmp.a=new T[tmp.size];
+			for(int i=0;i<l1.len;++i) tmp.a[i]=l1.a[i];
+			for(int i=0;i<l2.len;++i) tmp.a[i+l1.len]=l2.a[i];
+			return tmp;
+		}
+		
+		friend MyList operator + (const MyList &l1, const T &item){	//Like push(T item),but do nothing to l1，and return a new list.
+			MyList tmp;
+			tmp.len=(l1->len+1);
+			delete []tmp.a;
+			tmp.size=tmp.len*2+100;
+			tmp.a=new T[tmp.size];
+			for(int i=0;i<l1.len;++i) tmp.a[i]=l1.a[i];
+			tmp.a[l1.len]=item;
+			return tmp;
+		}
+		
+		MyList &operator = (const MyList &l){	//assignment
+			if(this ==&l) return *this;
+			
+			delete [] a;
+			
+			size=l.size;
+			len=l.len;
+			a=new T[size];
+			for(int i=0; i<size;++i) a[i]= l.a[i];
+			
+			return *this;  
+		}
+		
+		MyList &operator += (const T &item){	//Like push(T item).
+			if(len+1>=size) double_space();
+			a[len]=item;
+			++len;
+			return *this;
+		}
+		
+		MyList &operator += (const MyList &l){	//Add l to the end of primary MyList.
+			while(len+l.len>=size) double_space();
+			for(int i=0;i<l.len;++i) 
+				a[len++]=l.a[i];
+				return *this;
+		}
+		
+		T &operator [](int index){	//return the NO.index element.
+			return a[index];
+		}
+		
+		friend ostream & operator<<(ostream &os, const MyList &obj) {	//If T could cout directly.(like int)
+			if(obj.len==0) os<<'['<<']';
+			else{			
+				os << '[';
+				int i;
+				for(i=0;i<obj.len-1;++i)
+				os<<obj.a[i]<<','<<' ';
+				os<<obj.a[obj.len-1]<<']';
+			}
+
+			return os;
+		}
+
+		void sort(bool less=true){	// To sort a list.
+   									// If less=true，from low to high，Otherwise from high to low.
+			quicksort(a,0,len-1);
+			if(!less) reverse();
+		}
+		
+		void reverse(){				//Reverse the element in MyList.
+			int i;
+			T tmp;
+			for(i=0;i<len/2;++i) {
+				tmp=a[i];
+				a[i]=a[len-1-i];
+				a[len-1-i]=tmp;
+			}
+		}
+		
+		~MyList(){delete [] a;}
+};
+
+int main(){
+	MyList<int> a, b;
+	int i;
+	a.pop();
+	for (i=0; i<5; ++i)
+		a.push(i);
+    // a = [0, 1, 2, 3, 4]
+	a[3] = 15; // a = [0, 1, 2, 15, 4]
+	a.sort(); // a = [0, 1, 2, 4, 15]
+	a.reverse(); // a = [15, 4, 2, 1, 0]
+	a += 12; // a = [15, 4, 2, 1, 0, 12]
+	for (i=0; i<a.get_size(); ++i)
+		cout<<a[i]<<endl;
+    b = a.get_item(4, -3); // b = [] *若start > end，返回空数组
+	b = a.get_item(3, -1); // b = [1, 0, 12] 
+	a += b; // a = [15, 4, 2, 1, 0, 12, 1, 0, 12]
+	for (i=0; i<a.get_size(); ++i)
+		cout<<a.get_item(i)<<endl;
+	cout<<a.count(5)<<endl;
+	b.clean(); // b = []
+	cout<<b.get_size()<<endl;
+	a.erase(2, 5); // a = [15, 4,1, 0, 12]
+	b = a + a; // b = [15, 4, 0,1, 12, 15, 4, 0,1, 12]
+	b.insert(3, 116); // b = [15, 4, 0, 116, 12, 15, 4, 0, 12]
+	b.remove(4); // b = [15, 0, 116, ...]
+	cout<<b<<endl;
+	MyList<double> c(10, 3.14);
+	for (i=0; i<100; ++i)
+		c.push(1.1*i);
+	cout<<c.get_item(100, 105)<<endl;
+	
+	return 0;
+}
